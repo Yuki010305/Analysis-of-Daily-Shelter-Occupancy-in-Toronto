@@ -1,0 +1,144 @@
+---
+title: "Analysis of Daily Shelter Occupancy in Toronto"
+author: Yaning Jin
+thanks: Code and data are available at:https://github.com/Yuki010305/paper-1.git
+date: Today
+abstract: "This report aims to investigate the daily shelter occupancy in Toronto, focusing on trends, occupancy rates, and shelter capacity. By exploring this dataset, we aim to gain insights into the effectiveness of shelter utilization and identify any patterns or areas that might require attention."
+date-format: long
+format: pdf
+toc: true
+number-sections: true
+bibliography: references.bib
+link-citations: true
+---
+
+```{r}
+#### Workspace setup ####
+#install.packages("janitor")
+library("janitor")
+#install.packages("knitr")
+library("knitr")
+#install.packages("lubridate")
+library("lubridate")
+#install.packages("opendatatoronto")
+library("opendatatoronto")
+#install.packages("tidyverse")
+library("tidyverse")
+```
+
+# Introduction
+
+Toronto, recognized as a significant urban hub, confronts the pressing issue of ensuring sufficient shelter for its homeless community. The dataset titled "Daily_shelters.csv" presents a valuable resource for examining the patterns of shelter use and occupancy. Through meticulous analysis of this data, we can gain a comprehensive understanding of how effectively the city is meeting the need for shelter services.
+
+By delving into the specifics of this dataset, we can uncover critical trends and patterns in shelter occupancy. This includes The number of users in different shelters, the number of shelters in various regions, and the usage of shelters by different groups of people. This information is crucial for assessing the current state of shelter services in Toronto. Furthermore, this analysis will play a pivotal role in guiding decision-makers. By determining the shelter usage in different areas, policymakers and social service providers can better allocate resources, ensuring that they are directed where they are most needed. This could involve increasing shelter capacities, providing additional services during high-demand regions, or even developing long-term strategies to reduce homelessness. Additionally, this analysis could uncover potential areas of improvement in the city's approach to homelessness. For instance, it might reveal a need for more specialized shelters catering to specific groups such as families, youth, or those with mental health issues. This data-driven approach allows for targeted policy-making, which could lead to more effective solutions for the challenges faced by Toronto's homeless population.
+
+In summary, the "Daily_shelters.csv" dataset offers a crucial lens through which we can view and evaluate Toronto's efforts in providing shelter to its homeless citizens. The insights gained from this analysis will not only highlight current trends but also inform future strategies for resource allocation and policy development, aiming to improve the living conditions of the city's most vulnerable residents.
+
+# Data 
+##Data Analysis and Visualization
+
+
+```{r}
+#### Acquire ####
+Daily_shelters <-
+  # Each package is associated with a unique id  found in the "For 
+  # Developers" tab of the relevant page from Open Data Toronto
+  # https://open.toronto.ca/dataset/daily-shelter-occupancy/
+  list_package_resources("8a6eceb2-821b-4961-a29d-758f3087732d") |>
+  # Within that package, we are interested in the 2020 dataset
+  filter(name == 
+           "Daily shelter occupancy 2020.csv") |>
+  # Having reduced the dataset to one row we can get the resource
+  get_resource()
+
+write_csv(
+  x = Daily_shelters,
+  file = "Daily_shelters.csv"
+)
+
+head(Daily_shelters)
+```
+
+##bar plot
+I'll create a bar plot comparing the average occupancy among different shelters. This will help us understand which shelters tend to have higher occupancy rates on average. I'll focus on the top 10 shelters with the highest average occupancy. 
+```{r echo=FALSE, message=FALSE}
+# Calculate the average occupancy for each shelter
+average_occupancy <- shelter_data %>%
+  group_by(shelter_name) %>%
+  summarize(average_occupancy = mean(occupancy, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(desc(average_occupancy)) %>%
+  top_n(10) 
+
+# Create a bar plot for the top 10 shelters with the highest average occupancy
+ggplot(average_occupancy, aes(x = reorder(shelter_name, average_occupancy), y = average_occupancy, fill = shelter_name)) +
+  geom_bar(stat = "identity") +
+  coord_flip() + 
+  labs(x = "Shelter Name", y = "Average Occupancy", title = "Top 10 Shelters by Average Occupancy") +
+  theme_minimal() +
+  theme(legend.position = "none") 
+
+```
+The plot effectively highlights the shelters with the highest average occupancy, making it easy to identify which shelters are most frequently used or possibly overused. Such insights are crucial for understanding the distribution of demand across shelters and can inform resource allocation and policy decisions.
+
+##Occupancy vs. Date
+
+```{r}
+# Filter out rows with NA in either occupancy_date or occupancy
+filtered_data <- filtered_data %>% 
+                 filter(!is.na(occupancy_date) & !is.na(occupancy))
+
+# Plotting
+ggplot(filtered_data, aes(x = occupancy_date, y = occupancy, color = shelter_name)) +
+    geom_line() +
+    theme_minimal() +
+    labs(title = "Daily Shelter Occupancy: COSTI Reception Centre, Sojourn House, and Robertson House",
+         x = "Date",
+         y = "Occupancy")
+
+```
+
+```{r}
+# Load the ggplot2 library
+library(ggplot2)
+
+# Create a sample data frame with monthly data (replace with your actual data)
+data <- data.frame(
+  Month = as.Date(seq(as.Date("2023-01-01"), by = "months", length.out = 12), format="%Y-%m-%d"),
+  COSTI = c(100, 120, 110, 130, 140, 160, 150, 170, 180, 200, 210, 220),
+  Sojourn_House = c(80, 90, 85, 95, 100, 110, 105, 120, 130, 140, 150, 160),
+  Robertson_House = c(70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125)
+)
+
+# Create a line chart
+ggplot(data, aes(x = Month)) +
+  geom_line(aes(y = COSTI, color = "COSTI")) +
+  geom_line(aes(y = Sojourn_House, color = "Sojourn House")) +
+  geom_line(aes(y = Robertson_House, color = "Robertson House")) +
+  labs(title = "Monthly Data for Facilities",
+       x = "Month",
+       y = "Data") +
+  scale_color_manual(values = c("COSTI" = "blue", "Sojourn House" = "red", "Robertson House" = "green")) +
+  theme_minimal()
+
+
+```
+
+##Box Plot of Occupancy
+To examine the spread and outliers in shelter occupancy.This plot is useful for identifying shelters with unusually high or low occupancy rates compared to the general distribution.
+
+```{r}
+# Box plot to show the spread of occupancy
+ggplot(shelter_data, aes(x = shelter_city, y = occupancy)) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(title = "Spread of Occupancy in Different Shelters",
+       x = "Shelter Name",
+       y = "Occupancy") +
+  theme_bw()
+```
+
+
+#Conclusion
+This report provides an initial analysis of the shelter occupancy in Toronto. The visualizations help in understanding the utilization trends and capacity issues. Further analysis could focus on specific shelter types, demographic data, and regional differences to provide deeper insights into the shelter system in Toronto.
+

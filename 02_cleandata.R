@@ -7,18 +7,11 @@ library(janitor)
 library(lubridate)
 library(opendatatoronto)
 library(tidyverse)
+library(dplyr)
 
-# Load and clean the data
-Daily_shelters_clean <- 
-  clean_names(Daily_shelters) |>
-  mutate(occupancy_date = ymd(occupancy_date)) |>
-  select(occupancy_date, occupancy, capacity)
-
-# View the cleaned data
-head(Daily_shelters_clean)
-
-write_csv(
-  x = Daily_shelters_clean,
-  file = "cleaned_Daily_shelters.csv"
-)
-
+sectors_of_interest <- c("Women", "Families", "Co-ed")
+filtered_data_by_sector <- Cleaned_Daily_shelters %>%
+  filter(sector %in% sectors_of_interest)
+head(filtered_data_by_sector)
+filtered_file_path <- 'Cleaned_Daily_shelters_by_sector.csv'
+write_csv(x=filtered_data_by_sector, file=filtered_file_path)
