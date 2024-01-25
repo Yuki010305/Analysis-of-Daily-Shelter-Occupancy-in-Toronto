@@ -1,0 +1,132 @@
+Analyze my table and give me a graph of the Top10 Shelters and their Average Occupancy
+
+average_occupancy <- shelter_data %>%
+  group_by(shelter_name) %>%
+  summarize(average_occupancy = mean(occupancy, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(desc(average_occupancy)) %>%
+  top_n(10) 
+ggplot(average_occupancy, aes(x = reorder(shelter_name, average_occupancy), y = average_occupancy, fill = shelter_name)) +
+  geom_bar(stat = "identity") +
+  coord_flip() + 
+  labs(x = "Shelter Name", y = "Average Occupancy", title = "Top 10 Shelters by Average Occupancy") +
+  theme_minimal() +
+  theme(legend.position = "none") 
+
+
+Draw the histgram of the top three and oranization
+
+library(ggplot2)
+library(dplyr)
+# Load the dataset
+shelter_data <- read.csv("Cleaned_Daily_shelters_by_sector.csv")
+# Calculating average occupancy for each shelter
+average_occupancy <- shelter_data %>%
+  group_by(shelter_name) %>%
+  summarize(average_occupancy = mean(occupancy, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(desc(average_occupancy))
+# Selecting the top 3 shelters
+top_3_shelters <- head(average_occupancy, 3)
+# Filtering the original data for only the top 3 shelters
+top_3_data <- shelter_data %>%
+  filter(shelter_name %in% top_3_shelters$shelter_name)
+# Creating the histogram
+ggplot(top_3_data, aes(x = organization_name, fill = shelter_name)) +
+  geom_histogram(stat = "count", position = "stack") +
+  labs(title = "Histogram of Top 3 Shelters by Average Occupancy and Their Organizations",
+       x = "Organization Name",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+Warning: Ignoring unknown parameters: `binwidth`, `bins`, and `pad`
+
+library(ggplot2)
+library(dplyr)
+# Load the dataset
+shelter_data <- read.csv("Cleaned_Daily_shelters_by_sector.csv")
+# Calculating average occupancy for each shelter
+average_occupancy <- shelter_data %>%
+  group_by(shelter_name) %>%
+  summarize(average_occupancy = mean(occupancy, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(desc(average_occupancy))
+# Selecting the top 3 shelters
+top_3_shelters <- head(average_occupancy, 3)
+# Filtering the original data for only the top 3 shelters
+top_3_data <- shelter_data %>%
+  filter(shelter_name %in% top_3_shelters$shelter_name)
+# Creating the bar plot
+ggplot(top_3_data, aes(x = organization_name, fill = shelter_name)) +
+  geom_bar() +
+  labs(title = "Histogram of Top 3 Shelters by Average Occupancy and Their Organizations",
+       x = "Organization Name",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+Draw a diagram of the usage of the four types of people in the Sector in organizations
+
+# First, let's filter the data to include only the four sectors mentioned.
+sectors_of_interest = ['Women', 'Families', 'Co-ed', 'Youth']
+filtered_data = df[df['sector'].isin(sectors_of_interest)]
+# Now we will plot the use of organizations by these sectors.
+plt.figure(figsize=(14, 8))
+sns.countplot(data=filtered_data, y='organization_name', hue='sector', order=filtered_data['organization_name'].value_counts().index)
+plt.title('Use of Organizations by Sector')
+plt.xlabel('Count')
+plt.ylabel('Organization Name')
+plt.legend(title='Sector')
+plt.show()
+
+Error: unexpected '[' in "sectors_of_interest = ["
+
+library(ggplot2)
+library(dplyr)
+# Load the dataset
+shelter_data <- read.csv("Cleaned_Daily_shelters_by_sector.csv")
+# Define sectors of interest
+sectors_of_interest <- c('Women', 'Families', 'Co-ed', 'Youth')
+# Filter the data to only include the specified sectors
+filtered_data <- shelter_data %>% 
+  filter(sector %in% sectors_of_interest)
+# Plot the use of organizations by these sectors
+ggplot(filtered_data, aes(x = organization_name, fill = sector)) +
+  geom_bar() +
+  labs(title = "Use of Organizations by Sector",
+       x = "Organization Name",
+       y = "Count") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+run a simulation R code about organization name, shelter name, sector, occupancy
+
+set.seed(123) # Set a random seed for reproducibility
+
+# Sample data frame with shelter information
+shelter_data <- data.frame(
+  organization_name = c("Org1", "Org2", "Org3"),
+  shelter_name = c("Shelter A", "Shelter B", "Shelter C"),
+  sector = c("Families", "Co-ed", "Women"),
+  occupancy = c(100, 150, 120) # Starting occupancy
+)
+# Parameters for the simulation
+days <- 30 # Number of days to simulate
+change_range <- 0.1 # Occupancy can change up to ±10% each day
+# Function to simulate daily occupancy change
+simulate_occupancy <- function(occupancy) {
+  # Apply a random change within ±10%
+  change_factor <- 1 + runif(1, -change_range, change_range)
+  return(max(0, occupancy * change_factor)) # Ensure occupancy doesn't go below 0
+}
+# Run the simulation for the defined number of days
+for (day in 1:days) {
+  shelter_data$occupancy <- sapply(shelter_data$occupancy, simulate_occupancy)
+  
+  # Optional: Record the occupancy each day if you want to track over time
+}
+# View the simulated occupancy after the last day
+print(shelter_data)
